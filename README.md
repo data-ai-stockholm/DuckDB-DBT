@@ -1,1 +1,1 @@
-# DuckDB-end-to-end
+# DuckDB-DBT
