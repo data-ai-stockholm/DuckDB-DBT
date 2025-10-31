@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: main
+    tables:
+      - name: observations
+models:
+  - name: dim_stations
+    description: "Unique weather stations with their locations."
