@@ -1,4 +1,4 @@
-.duckdb-pipeline
+.duckdb-end-to-end/
 ingestion_data/
 weather_reports.db
 
