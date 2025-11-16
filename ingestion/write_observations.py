@@ -29,5 +29,5 @@ conn.execute("""
         observation.properties.relativeHumidity.value::DECIMAL AS relative_humidity_percent,
         observation.properties.windChill.value::DECIMAL AS wind_chill_degC,
         observation.properties.heatIndex.value::DECIMAL AS heat_index_degC
-    FROM read_parquet('ingestion_data/observations/observations_station_*.parquet')
+    FROM read_parquet('ingestion/ingestion_data/observations/observations_station_*.parquet')
 """)
