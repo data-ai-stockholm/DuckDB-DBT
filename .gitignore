@@ -1,0 +1,8 @@
+.duckdb-end-to-end/
+ingestion_data/
+weather_reports.db
+
+# Ignore dbt artifacts
+logs/
+target/
+.user.yml
