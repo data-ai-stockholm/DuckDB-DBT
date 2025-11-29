@@ -17,14 +17,14 @@ def fetch_station_groups(page_limit=10):
             CREATE OR REPLACE TABLE weather_stations AS
             
             SELECT
-                UNNEST(features)->>'properties'->>'stationIdentifier' AS station_id,
-                UNNEST(features)->>'id' AS station_url,
-                UNNEST(features)->>'geometry'->>'coordinates' AS coordinates,
-                UNNEST(features)->>'properties'->>'elevation'->>'value' AS elevation_m,
-                UNNEST(features)->>'properties'->>'name' AS station_name,
-                UNNEST(features)->>'properties'->>'timeZone' AS time_zone,
-                UNNEST(features)->>'properties'->>'forecast' AS forecast_url,
-                UNNEST(features)->>'properties'->>'county' AS county,
+                UNNEST(features)['properties']['stationIdentifier'] AS station_id,
+                UNNEST(features)['id'] AS station_url,
+                CAST(UNNEST(features)['geometry']['coordinates'] AS VARCHAR[]) AS coordinates,
+                UNNEST(features)['properties']['elevation']['value']::DECIMAL AS elevation_m,
+                UNNEST(features)['properties']['name'] AS station_name,
+                UNNEST(features)['properties']['timeZone'] AS time_zone,
+                UNNEST(features)['properties']['forecast'] AS forecast_url,
+                UNNEST(features)['properties']['county'] AS county,
                 pagination.next AS next_page
             FROM read_json_auto('{next_page}')
         """)

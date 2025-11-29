@@ -12,12 +12,12 @@ def fetch_zones():
         CREATE OR REPLACE TABLE zones AS
         
         SELECT
-            UNNEST(features)->>'id' AS zone_id,
-            UNNEST(features)->>'properties'->>'@id' AS zone_url,
-            UNNEST(features)->>'properties'->>'type' AS zone_type,
-            UNNEST(features)->>'properties'->>'name' AS zone_name,
-            UNNEST(features)->>'properties'->>'state' AS state,
-            UNNEST(features)->>'properties'->>'forecastOffice' AS office_url
+            UNNEST(features)['id'] AS zone_id,
+            UNNEST(features)['properties']['@id'] AS zone_url,
+            UNNEST(features)['properties']['type'] AS zone_type,
+            UNNEST(features)['properties']['name'] AS zone_name,
+            UNNEST(features)['properties']['state'] AS state,
+            UNNEST(features)['properties']['forecastOffice'] AS office_url
         FROM read_json_auto('{URL}')
     """).df()
 

@@ -20,28 +20,28 @@ def fetch_observations(station_limit=50):
         try:
             observations = conn.execute(f"""
                 SELECT
-                    properties.timestamp AS observation_timestamp,
+                    CAST(properties.timestamp AS TIMESTAMPTZ) AS observation_timestamp,
                     id AS observation_id,
                     type AS observation_type,
                     geometry.type AS geometry_type,
-                    geometry.coordinates AS geometry_coordinates,
-                    properties.elevation.value AS elevation_m,
+                    CAST(json_extract(geometry, '$.coordinates') AS VARCHAR[]) AS coordinates,
+                    properties.elevation.value::DECIMAL AS elevation_m,
                     properties.stationId AS station_id,
                     properties.stationName AS station_name,
-                    properties.temperature.value AS temperature_degC,
-                    properties.dewpoint.value AS dewpoint_degC,
-                    properties.windDirection.value AS wind_direction_deg,
-                    properties.windSpeed.value AS wind_speed_kmh,
-                    properties.windGust.value AS wind_gust_kmh,
-                    properties.barometricPressure.value AS barometric_pressure_Pa,
-                    properties.seaLevelPressure.value AS sea_level_pressure_Pa,
-                    properties.visibility.value AS visibility_m,
-                    properties.maxTemperatureLast24Hours.value AS max_temp_24h_degC,
-                    properties.minTemperatureLast24Hours.value AS min_temp_24h_degC,
-                    properties.precipitationLast3Hours.value AS precipitation_3h_mm,
-                    properties.relativeHumidity.value AS relative_humidity_percent,
-                    properties.windChill.value AS wind_chill_degC,
-                    properties.heatIndex.value AS heat_index_degC
+                    properties.temperature.value::DECIMAL AS temperature_degC,
+                    properties.dewpoint.value::DECIMAL AS dewpoint_degC,
+                    properties.windDirection.value::DECIMAL AS wind_direction_deg,
+                    properties.windSpeed.value::DECIMAL AS wind_speed_kmh,
+                    properties.windGust.value::DECIMAL AS wind_gust_kmh,
+                    properties.barometricPressure.value::DECIMAL AS barometric_pressure_Pa,
+                    properties.seaLevelPressure.value::DECIMAL AS sea_level_pressure_Pa,
+                    properties.visibility.value::DECIMAL AS visibility_m,
+                    properties.maxTemperatureLast24Hours.value::DECIMAL AS max_temp_24h_degC,
+                    properties.minTemperatureLast24Hours.value::DECIMAL AS min_temp_24h_degC,
+                    properties.precipitationLast3Hours.value::DECIMAL AS precipitation_3h_mm,
+                    properties.relativeHumidity.value::DECIMAL AS relative_humidity_percent,
+                    properties.windChill.value::DECIMAL AS wind_chill_degC,
+                    properties.heatIndex.value::DECIMAL AS heat_index_degC
                 FROM read_json_auto('{url}/observations/latest')
             """).df()
         except duckdb.HTTPException as e:
@@ -55,13 +55,13 @@ def fetch_observations(station_limit=50):
 
         fetch_date = conn.execute(f"""
             SELECT
-                SPLIT(observation_timestamp, 'T')[1] AS latest_time
+                SPLIT(observation_timestamp::VARCHAR, ' ')[1] AS latest_time
             FROM observations
         """).fetchone()[0]
 
         latest_timestamp = conn.execute(f"""
             SELECT
-                SPLIT(observation_timestamp, 'T')[2] AS latest_time
+                SPLIT(observation_timestamp::VARCHAR, ' ')[2] AS latest_time
             FROM observations
         """).fetchone()[0]
 
