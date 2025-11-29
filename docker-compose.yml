@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  ingestion_service:
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    image: weather-ingest:latest
+    container_name: ingestion_service
+    restart: unless-stopped
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./ingestion_data:/app/ingestion_data
+      - ./ingestion:/app/ingestion:ro
+    working_dir: /app
+    # command: ["sleep", "infinity"]
+    command: ["python", "ingestion/ingestion_service.py"]
+    stdin_open: true
+    tty: true
