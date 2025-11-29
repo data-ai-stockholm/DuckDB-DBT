@@ -1,7 +1,0 @@
-weather:
-  target: dev
-  outputs:
-    dev:
-      type: duckdb
-      path: "weather_reports.db"
-      threads: 4
