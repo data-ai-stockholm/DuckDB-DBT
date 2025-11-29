@@ -19,3 +19,19 @@ services:
     command: ["python", "ingestion/ingestion_service.py"]
     stdin_open: true
     tty: true
+  transformation_service:
+    build:
+      context: .
+      dockerfile: transformation/Dockerfile
+    image: weather-transform:latest
+    container_name: transformation_service
+    restart: unless-stopped
+    environment:
+      - DBT_PROFILES_DIR=/app/transformation
+    volumes:
+      - ./transformation:/app/transformation
+      - ./ingestion_data:/app/ingestion_data
+    working_dir: /app/transformation
+    command: ["./transformation_service.sh"]
+    stdin_open: true
+    tty: true
