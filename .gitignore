@@ -6,3 +6,9 @@ weather_reports.db
 logs/
 target/
 .user.yml
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
