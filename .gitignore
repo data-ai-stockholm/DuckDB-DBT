@@ -1,6 +1,7 @@
 .duckdb-end-to-end/
 ingestion_data/
 weather_reports.db
+weather_reports_ro.db
 
 # Ignore dbt artifacts
 logs/
