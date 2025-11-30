@@ -1,197 +1,38 @@
 # Weather Data Pipeline with DuckDB & dbt
 
-A data pipeline for fetching, storing, and transforming weather observation data using DuckDB and dbt.
+A data pipeline for fetching, storing, transforming and vizualizing weather observation data using DuckDB and dbt.
 
-## Prerequisites
+## 1. Introduction
 
-- Python 3.12+
-- DuckDB CLI
-- dbt-duckdb
+### What is it?
 
-## Setup
+This repository contains a configurable, end-to-end data pipeline that extracts the latest weather data from the [weather.gov API](https://api.weather.gov/), stores it in Parquet files, transforms it into consumable aggregate tables, and visualizes it on an updating cadence.
 
-### 1. Install Dependencies
+### Objective
 
-```bash
-pip install duckdb dbt-duckdb --break-system-packages
-```
+The objective is to demonstrate the power of DuckDB for a small-scale analytics scenario at different points of the data pipeline (ingestion, transformation, and visualization).
 
-### 2. Install DuckDB CLI
+## 2. Architecture and Current Level of Development
 
-```bash
-# Extract the DuckDB CLI binary
-unzip duckdb_cli-linux-amd64.zip
-chmod +x duckdb
-```
+The current solution contains three services,
+* Ingestion Service
+* Transformation Service
+* Visualization Service
 
-### 3. Set up dbt Profile
+![Pipeline Architecture](images/architecture/pipeline_architecture.png)
 
-Ensure `profiles.yml` exists in your project root with:
+### 2.1 Ingestion Service
 
-```yaml
-weather:
-  target: dev
-  outputs:
-    dev:
-      type: duckdb
-      path: "weather_reports.db"
-      threads: 4
-```
+All scripts required to run the `ingestion_service` are given in `./ingestion`. It contains scripts to fetch stations, zones and observations data and write them into a runtime created forlder called `./ingestion_data`. The `./ingestion/Dockerfile` contains the context to run the `ingestion_service` as a Docker container. More details in --> [Ingestion Service](to_be_added.txt)
 
-## Data Ingestion
+### 2.2 Transformation Service
 
-### Fetch Weather Stations
+All scripts required to run the `transformation_service` are given in `./transformation`. It contains the automation scripts and the dbt models defined to transform then data in the ingestion layer and write them to a runtime generated DuckDB file called `./transformation/weather_reports.db`. The `./transformation/Dockerfile` contains the context to run the `transformation_service` as a Docker container. More details in --> [Transformation Service](to_be_added.txt)
 
-Downloads weather station metadata from the API:
+### 2.3 Visualization Service
 
-```bash
-python3 ingestion/fetch_stations.py
-```
+All scripts required to run the `visualization_service` are given in `./visualization`. It contains the python scrips to read from `./transformation/weather_reports.db` and then visualize the data in a Streamlit app. The `./visualization/Dockerfile` contains the context to run the `visualization_service` as a Docker container. More details in --> [Visualization Service](to_be_added.txt)
 
-Data is saved to: `ingestion/ingestion_data/stations/*.parquet`
+## How to use
 
-### Fetch Observations
-
-Downloads weather observations for each station:
-
-```bash
-python3 ingestion/fetch_observations.py
-```
-
-Data is saved to: `ingestion/ingestion_data/observations/*.parquet`
-
-**Note:** This can take several hours as it fetches data for each station individually.
-
-### Load Data into DuckDB
-
-Load the Parquet files into the DuckDB database:
-
-```bash
-# Load stations
-python3 ingestion/write_stations.py
-
-# Load observations
-python3 ingestion/write_observations.py
-```
-
-This creates the `stations` and `observations` tables in `weather_reports.db`.
-
-## Data Transformation with dbt
-
-Run dbt models to transform raw data:
-
-```bash
-dbt run
-```
-
-This creates the following tables:
-
-### Dimension Tables
-- **`dim_stations`** - Unique weather stations with location information
-
-### Fact Tables
-- **`fact_observations`** - Cleaned observations with data quality checks applied
-  - Removes invalid temperature readings (< -100°C or > 60°C)
-  - Validates wind speeds, humidity percentages
-  - Adds date/time components for easier analysis
-  
-- **`fact_daily_weather`** - Daily aggregated weather metrics by station
-  - Average, min, max temperatures
-  - Maximum wind speeds and gusts
-  - Total daily precipitation
-  - Data quality counts
-
-### Analytics Tables
-- **`extreme_weather_events`** - Identified extreme weather events
-  - Extreme Heat: ≥ 40°C
-  - Extreme Cold: ≤ -30°C
-  - High Winds: ≥ 75 km/h
-  - Extreme Gusts: ≥ 100 km/h
-  - Heavy Precipitation: ≥ 50mm per day
-  - Large Temperature Swings: ≥ 30°C daily range
-
-## Querying Data
-
-Open the DuckDB CLI:
-
-```bash
-./duckdb weather_reports.db
-```
-
-Example queries:
-
-```sql
--- Show all tables
-SHOW TABLES;
-
--- View stations
-SELECT * FROM dim_stations LIMIT 10;
-
--- Count observations
-SELECT COUNT(*) FROM observations;
-SELECT COUNT(*) FROM fact_observations;
-
--- Check daily weather aggregates
-SELECT * FROM fact_daily_weather 
-ORDER BY observation_date DESC 
-LIMIT 10;
-
--- Find extreme weather events
-SELECT 
-    observation_date,
-    station_name,
-    event_types,
-    max_temp_degC,
-    max_wind_speed_kmh
-FROM extreme_weather_events 
-ORDER BY observation_date DESC 
-LIMIT 20;
-
--- Exit
-.exit
-```
-
-## Troubleshooting
-
-### Empty Parquet Files
-
-If you encounter errors about files being too small, remove empty Parquet files:
-
-```bash
-find ingestion/ingestion_data/observations/ -name "*.parquet" -size 0 -delete
-```
-
-### dbt Command Not Found
-
-If `dbt` is not in your PATH after installation, add it:
-
-```bash
-export PATH="/home/codespace/.local/bin:$PATH"
-```
-
-Or run dbt commands with the full path:
-
-```bash
-/home/codespace/.local/bin/dbt run
-```
-
-### Running Specific Models
-
-```bash
-# Run only one model
-dbt run --select fact_observations
-
-# Run a model and its downstream dependencies
-dbt run --select fact_observations+
-
-# Run all models in a specific folder
-dbt run --select models/facts/
-```
-
-## Future Enhancements
-
-- Add geographic dimension tables (regions, states, counties)
-- Create time-series analysis models
-- Add data quality tests
-- Implement incremental models for large datasets
-- Add visualization layer
+TO BE ADDED...
