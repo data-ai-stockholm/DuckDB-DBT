@@ -2,12 +2,12 @@ name: dbt CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'dbt/**'
       - 'config/**'
   pull_request:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - 'dbt/**'
       - 'config/**'
