@@ -228,26 +228,51 @@ warehouse/
 
 ## Architecture
 
-```
-┌─────────────┐
-│   DuckDB    │ ──────┐
-└─────────────┘       │
-                       ├──→ ┌──────────────────┐
-┌─────────────┐       │    │  REST Catalog    │
-│     dbt     │ ──────┘    │  (Port 8181)     │
-└─────────────┘            └──────────────────┘
-                                     │
-                                     ↓
-                           ┌──────────────────┐
-                           │  PyIceberg +     │
-                           │  SQLite Catalog  │
-                           └──────────────────┘
-                                     │
-                                     ↓
-                           ┌──────────────────┐
-                           │   Warehouse      │
-                           │   (Iceberg)      │
-                           └──────────────────┘
+```mermaid
+graph LR
+    %% Styles
+    classDef storage fill:#E1F5FE,stroke:#01579B,stroke-width:2px;
+    classDef compute fill:#FFF3E0,stroke:#E65100,stroke-width:2px;
+    classDef orchestrator fill:#E8F5E9,stroke:#1B5E20,stroke-width:2px;
+    classDef cicd fill:#F3E5F5,stroke:#4A148C,stroke-width:2px;
+
+    subgraph "Local Dev"
+        Dev[Developer]
+        LocalDB[(Local DuckDB)]
+    end
+
+    subgraph "CI/CD Pipeline"
+        GH[GitHub Repo]
+        GHA[GitHub Actions<br/>(CI: Test / CD: Deploy)]
+    end
+
+    subgraph "Orchestration"
+        Prefect[Prefect Cloud/Server]
+    end
+
+    subgraph "Execution Plane (Serverless)"
+        Agent[Prefect Agent/Runner]
+        DuckDB[DuckDB Engine<br/>(dbt-duckdb)]
+    end
+
+    subgraph "Data Lake"
+        Iceberg[(Iceberg Tables<br/>S3/GCS)]
+    end
+
+    %% Flows
+    Dev -->|Push Code| GH
+    Dev -.->|Ad-hoc Query| LocalDB
+    GH -->|Trigger| GHA
+    GHA -->|Register Flow| Prefect
+    Prefect -->|Schedule Run| Agent
+    Agent -->|Spin up| DuckDB
+    DuckDB -->|Read/Write| Iceberg
+
+    %% Apply Styles
+    class Iceberg,LocalDB storage;
+    class DuckDB,Agent compute;
+    class Prefect orchestrator;
+    class GH,GHA cicd;
 ```
 
 ## Orchestration & Deployment
