@@ -1,25 +1,8 @@
 """Iceberg table management with DuckDB (using latest DuckDB v1.4.2+ approach)."""
 
-import os
 import duckdb
-from typing import Optional
-from pathlib import Path
 
 from src.ingestion.config import get_config
-
-try:
-    from pyiceberg.catalog.sql import SqlCatalog
-    from pyiceberg.schema import Schema
-    from pyiceberg.types import (
-        TimestamptzType,
-        StringType,
-        DoubleType,
-        NestedField,
-        ListType,
-    )
-    HAS_PYICEBERG = True
-except ImportError:
-    HAS_PYICEBERG = False
 
 
 class IcebergManager:
@@ -92,7 +75,7 @@ class IcebergManager:
                         TYPE iceberg
                     )
                 """
-                print(f"Using local filesystem Iceberg catalog")
+                print("Using local filesystem Iceberg catalog")
 
             elif catalog_type == "rest":
                 # REST Catalog (Polaris, Lakekeeper, etc.)
@@ -131,10 +114,10 @@ class IcebergManager:
 
                 attach_sql = f"""
                     ATTACH '{warehouse_path}' AS {self.catalog_name} (
-                        {', '.join(s3_options)}
+                        {", ".join(s3_options)}
                     )
                 """
-                print(f"Using S3-based Iceberg catalog")
+                print("Using S3-based Iceberg catalog")
 
             else:
                 # Default: local filesystem
@@ -143,7 +126,7 @@ class IcebergManager:
                         TYPE iceberg
                     )
                 """
-                print(f"Using default local filesystem catalog")
+                print("Using default local filesystem catalog")
 
             self.conn.execute(attach_sql)
             print(f"✓ Attached to Iceberg catalog: {self.catalog_name}")
@@ -156,12 +139,7 @@ class IcebergManager:
             # Mark that catalog attachment failed
             self.catalog_failed = True
 
-    def create_table(
-        self,
-        table_name: str,
-        schema_sql: str,
-        namespace: str = "default"
-    ):
+    def create_table(self, table_name: str, schema_sql: str, namespace: str = "default"):
         """Create an Iceberg table with the specified schema.
 
         Args:
@@ -201,11 +179,7 @@ class IcebergManager:
             self.conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({schema_sql})")
 
     def write_data(
-        self,
-        table_name: str,
-        query: str,
-        namespace: str = "default",
-        mode: str = "append"
+        self, table_name: str, query: str, namespace: str = "default", mode: str = "append"
     ):
         """Write data to an Iceberg table using INSERT INTO.
 
@@ -249,11 +223,7 @@ class IcebergManager:
             else:
                 self.conn.execute(f"INSERT INTO {table_name} {query}")
 
-    def read_table(
-        self,
-        table_name: str,
-        namespace: str = "default"
-    ) -> str:
+    def read_table(self, table_name: str, namespace: str = "default") -> str:
         """Get the fully qualified table identifier for reading.
 
         Args:
@@ -270,11 +240,7 @@ class IcebergManager:
             return table_name
 
     def update_data(
-        self,
-        table_name: str,
-        set_clause: str,
-        where_clause: str,
-        namespace: str = "default"
+        self, table_name: str, set_clause: str, where_clause: str, namespace: str = "default"
     ):
         """Update data in an Iceberg table (requires DuckDB v1.4.2+).
 
@@ -294,12 +260,7 @@ class IcebergManager:
         except Exception as e:
             print(f"⚠ Error updating table: {e}")
 
-    def delete_data(
-        self,
-        table_name: str,
-        where_clause: str,
-        namespace: str = "default"
-    ):
+    def delete_data(self, table_name: str, where_clause: str, namespace: str = "default"):
         """Delete data from an Iceberg table.
 
         Args:

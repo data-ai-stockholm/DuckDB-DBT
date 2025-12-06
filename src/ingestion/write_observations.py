@@ -1,10 +1,9 @@
 """Writes the observations data from Parquet files into DuckDB/Iceberg tables."""
 
-import os
 from pathlib import Path
 
-from src.ingestion.iceberg_manager import get_duckdb_connection, IcebergManager
 from src.ingestion.config import get_config
+from src.ingestion.iceberg_manager import IcebergManager, get_duckdb_connection
 
 
 def main():
@@ -98,10 +97,7 @@ def main():
     # Write data to the table
     print("Loading observation data...")
     iceberg.write_data(
-        table_name="observations",
-        query=load_query,
-        namespace="weather_data",
-        mode="overwrite"
+        table_name="observations", query=load_query, namespace="weather_data", mode="overwrite"
     )
 
     # Get record count

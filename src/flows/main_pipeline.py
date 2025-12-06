@@ -2,14 +2,14 @@
 
 from prefect import flow
 
-from src.flows.weather_ingestion import weather_ingestion_flow
 from src.flows.dbt_transformations import dbt_transformations_flow
+from src.flows.weather_ingestion import weather_ingestion_flow
 
 
 @flow(
     name="weather-data-pipeline",
     description="Complete end-to-end weather data pipeline with ingestion and transformations",
-    log_prints=True
+    log_prints=True,
 )
 def main_pipeline_flow():
     """
@@ -44,11 +44,7 @@ def main_pipeline_flow():
     print("PIPELINE COMPLETED SUCCESSFULLY")
     print("=" * 70)
 
-    return {
-        "status": "success",
-        "ingestion": ingestion_result,
-        "transformations": dbt_result
-    }
+    return {"status": "success", "ingestion": ingestion_result, "transformations": dbt_result}
 
 
 if __name__ == "__main__":

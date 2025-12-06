@@ -1,7 +1,6 @@
 """Prefect flow for dbt transformations."""
 
 import subprocess
-from pathlib import Path
 
 from prefect import flow, task
 from prefect.artifacts import create_markdown_artifact
@@ -12,7 +11,7 @@ from prefect.artifacts import create_markdown_artifact
     description="Run dbt models",
     retries=2,
     retry_delay_seconds=30,
-    task_run_name="dbt-run-{profiles_dir}"
+    task_run_name="dbt-run-{profiles_dir}",
 )
 def dbt_run(profiles_dir: str = "dbt"):
     """Run dbt models."""
@@ -23,21 +22,16 @@ def dbt_run(profiles_dir: str = "dbt"):
             capture_output=True,
             text=True,
             check=True,
-            cwd="."
+            cwd=".",
         )
-        print(f"✓ dbt run completed")
+        print("✓ dbt run completed")
         return result.stdout
     except subprocess.CalledProcessError as e:
         print(f"❌ dbt run failed: {e.stderr}")
         raise
 
 
-@task(
-    name="dbt-test",
-    description="Run dbt tests",
-    retries=1,
-    retry_delay_seconds=30
-)
+@task(name="dbt-test", description="Run dbt tests", retries=1, retry_delay_seconds=30)
 def dbt_test(profiles_dir: str = "dbt"):
     """Run dbt tests."""
     print("Running dbt tests...")
@@ -46,19 +40,15 @@ def dbt_test(profiles_dir: str = "dbt"):
         capture_output=True,
         text=True,
         check=False,  # Don't fail on test failures
-        cwd="."
+        cwd=".",
     )
 
     if result.returncode == 0:
-        print(f"✓ All dbt tests passed")
+        print("✓ All dbt tests passed")
     else:
-        print(f"⚠️ Some dbt tests failed")
+        print("⚠️ Some dbt tests failed")
 
-    return {
-        "stdout": result.stdout,
-        "stderr": result.stderr,
-        "returncode": result.returncode
-    }
+    return {"stdout": result.stdout, "stderr": result.stderr, "returncode": result.returncode}
 
 
 @task(
@@ -74,20 +64,16 @@ def dbt_docs_generate(profiles_dir: str = "dbt"):
             capture_output=True,
             text=True,
             check=True,
-            cwd="."
+            cwd=".",
         )
-        print(f"✓ Documentation generated")
+        print("✓ Documentation generated")
         return result.stdout
     except subprocess.CalledProcessError as e:
         print(f"❌ docs generate failed: {e.stderr}")
         raise
 
 
-@flow(
-    name="dbt-transformations",
-    description="Run dbt transformations and tests",
-    log_prints=True
-)
+@flow(name="dbt-transformations", description="Run dbt transformations and tests", log_prints=True)
 def dbt_transformations_flow(profiles_dir: str = "dbt"):
     """
     Main flow for dbt transformations.
@@ -107,11 +93,11 @@ def dbt_transformations_flow(profiles_dir: str = "dbt"):
     # Run tests
     test_result = dbt_test(profiles_dir)
     print(f"dbt tests completed with return code: {test_result['returncode']}")
-    print(test_result['stdout'])
+    print(test_result["stdout"])
 
-    if test_result['returncode'] != 0:
+    if test_result["returncode"] != 0:
         print("⚠️  Some tests failed:")
-        print(test_result['stderr'])
+        print(test_result["stderr"])
 
     # Generate docs
     docs_result = dbt_docs_generate(profiles_dir)
@@ -126,10 +112,10 @@ def dbt_transformations_flow(profiles_dir: str = "dbt"):
 ```
 
 ## Tests
-**Status**: {'✅ Passed' if test_result['returncode'] == 0 else '❌ Failed'}
+**Status**: {"✅ Passed" if test_result["returncode"] == 0 else "❌ Failed"}
 
 ```
-{test_result['stdout']}
+{test_result["stdout"]}
 ```
 
 ## Documentation
@@ -137,16 +123,14 @@ Documentation generated successfully.
 """
 
     create_markdown_artifact(
-        key="dbt-run-results",
-        markdown=markdown_report,
-        description="dbt transformation results"
+        key="dbt-run-results", markdown=markdown_report, description="dbt transformation results"
     )
 
     return {
-        "status": "success" if test_result['returncode'] == 0 else "completed_with_warnings",
+        "status": "success" if test_result["returncode"] == 0 else "completed_with_warnings",
         "run_output": run_result,
         "test_result": test_result,
-        "docs_output": docs_result
+        "docs_output": docs_result,
     }
 
 

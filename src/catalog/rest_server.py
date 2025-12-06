@@ -11,23 +11,27 @@ Key Concepts:
 - Table: Individual Iceberg table with metadata and snapshots
 """
 
-from flask import Flask, jsonify, request, make_response
+import json
+import logging
+import uuid
+from pathlib import Path
+
+from flask import Flask, jsonify, request
 from pyiceberg.catalog.sql import SqlCatalog
+from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.schema import Schema
 from pyiceberg.types import (
-    NestedField, StringType, DoubleType, TimestamptzType,
-    ListType, StructType
+    DoubleType,
+    ListType,
+    NestedField,
+    StringType,
+    StructType,
+    TimestamptzType,
 )
-from pyiceberg.partitioning import PartitionSpec
-from pathlib import Path
-import uuid
-import logging
-import json
 
 # Setup logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -43,10 +47,10 @@ catalog = SqlCatalog(
     **{
         "uri": f"sqlite:///{catalog_db}",
         "warehouse": f"file://{warehouse_path}",
-    }
+    },
 )
 
-logger.info(f"Initialized Iceberg REST Catalog")
+logger.info("Initialized Iceberg REST Catalog")
 logger.info(f"  Catalog DB: {catalog_db}")
 logger.info(f"  Warehouse: {warehouse_path}")
 
@@ -55,7 +59,8 @@ logger.info(f"  Warehouse: {warehouse_path}")
 # CONFIGURATION ENDPOINTS
 # ============================================================================
 
-@app.route('/v1/config', methods=['GET'])
+
+@app.route("/v1/config", methods=["GET"])
 def get_config():
     """
     Get catalog configuration.
@@ -70,7 +75,7 @@ def get_config():
         "defaults": {
             # Tell DuckDB no authentication is required
             "authorization_type": "none"
-        }
+        },
     }
     logger.info(f"Config requested: {config}")
     return jsonify(config)
@@ -80,7 +85,8 @@ def get_config():
 # NAMESPACE (DATABASE/SCHEMA) ENDPOINTS
 # ============================================================================
 
-@app.route('/v1/namespaces', methods=['GET'])
+
+@app.route("/v1/namespaces", methods=["GET"])
 def list_namespaces():
     """
     List all namespaces (databases/schemas).
@@ -89,9 +95,7 @@ def list_namespaces():
     """
     try:
         namespaces = list(catalog.list_namespaces())
-        response = {
-            "namespaces": [[ns] for ns in namespaces]
-        }
+        response = {"namespaces": [[ns] for ns in namespaces]}
         logger.info(f"Listed {len(namespaces)} namespaces")
         return jsonify(response)
     except Exception as e:
@@ -99,7 +103,7 @@ def list_namespaces():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/v1/namespaces/<namespace>', methods=['GET'])
+@app.route("/v1/namespaces/<namespace>", methods=["GET"])
 def get_namespace(namespace):
     """
     Get namespace properties.
@@ -108,24 +112,23 @@ def get_namespace(namespace):
     """
     try:
         props = catalog.load_namespace_properties(namespace)
-        response = {
-            "namespace": [namespace],
-            "properties": props
-        }
+        response = {"namespace": [namespace], "properties": props}
         logger.info(f"Retrieved namespace: {namespace}")
         return jsonify(response)
     except Exception as e:
         logger.error(f"Error getting namespace {namespace}: {e}")
-        return jsonify({
-            "error": {
-                "message": f"Namespace not found: {namespace}",
-                "type": "NamespaceNotFoundException",
-                "code": 404
+        return jsonify(
+            {
+                "error": {
+                    "message": f"Namespace not found: {namespace}",
+                    "type": "NamespaceNotFoundException",
+                    "code": 404,
+                }
             }
-        }), 404
+        ), 404
 
 
-@app.route('/v1/namespaces/<namespace>', methods=['POST'])
+@app.route("/v1/namespaces/<namespace>", methods=["POST"])
 def create_namespace(namespace):
     """
     Create a new namespace.
@@ -134,28 +137,21 @@ def create_namespace(namespace):
     """
     try:
         data = request.get_json() or {}
-        properties = data.get('properties', {})
+        properties = data.get("properties", {})
 
         catalog.create_namespace(namespace, properties=properties)
 
-        response = {
-            "namespace": [namespace],
-            "properties": properties
-        }
+        response = {"namespace": [namespace], "properties": properties}
         logger.info(f"Created namespace: {namespace}")
         return jsonify(response), 200  # Spec says 200, not 201
     except Exception as e:
         logger.error(f"Error creating namespace {namespace}: {e}")
-        return jsonify({
-            "error": {
-                "message": str(e),
-                "type": "AlreadyExistsException",
-                "code": 409
-            }
-        }), 409
+        return jsonify(
+            {"error": {"message": str(e), "type": "AlreadyExistsException", "code": 409}}
+        ), 409
 
 
-@app.route('/v1/namespaces/<namespace>', methods=['DELETE'])
+@app.route("/v1/namespaces/<namespace>", methods=["DELETE"])
 def drop_namespace(namespace):
     """
     Drop a namespace.
@@ -165,23 +161,20 @@ def drop_namespace(namespace):
     try:
         catalog.drop_namespace(namespace)
         logger.info(f"Dropped namespace: {namespace}")
-        return '', 204  # No content
+        return "", 204  # No content
     except Exception as e:
         logger.error(f"Error dropping namespace {namespace}: {e}")
-        return jsonify({
-            "error": {
-                "message": str(e),
-                "type": "NamespaceNotEmptyException",
-                "code": 409
-            }
-        }), 409
+        return jsonify(
+            {"error": {"message": str(e), "type": "NamespaceNotEmptyException", "code": 409}}
+        ), 409
 
 
 # ============================================================================
 # TABLE ENDPOINTS
 # ============================================================================
 
-@app.route('/v1/namespaces/<namespace>/tables', methods=['GET'])
+
+@app.route("/v1/namespaces/<namespace>/tables", methods=["GET"])
 def list_tables(namespace):
     """
     List all tables in a namespace.
@@ -190,11 +183,7 @@ def list_tables(namespace):
         tables = catalog.list_tables(namespace)
         response = {
             "identifiers": [
-                {
-                    "namespace": [namespace],
-                    "name": str(table).split('.')[-1]
-                }
-                for table in tables
+                {"namespace": [namespace], "name": str(table).split(".")[-1]} for table in tables
             ]
         }
         logger.info(f"Listed {len(tables)} tables in {namespace}")
@@ -204,7 +193,7 @@ def list_tables(namespace):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/v1/namespaces/<namespace>/tables', methods=['POST'])
+@app.route("/v1/namespaces/<namespace>/tables", methods=["POST"])
 def create_table(namespace):
     """
     Create a new Iceberg table.
@@ -223,8 +212,8 @@ def create_table(namespace):
     """
     try:
         data = request.get_json()
-        table_name = data.get('name')
-        schema_data = data.get('schema')
+        table_name = data.get("name")
+        schema_data = data.get("schema")
 
         logger.info(f"Creating table {namespace}.{table_name}")
         logger.debug(f"Schema: {json.dumps(schema_data, indent=2)}")
@@ -240,7 +229,9 @@ def create_table(namespace):
         )
 
         # Build response with table metadata
-        metadata_location = f"{warehouse_path}/{namespace}/{table_name}/metadata/00000-{uuid.uuid4()}.metadata.json"
+        metadata_location = (
+            f"{warehouse_path}/{namespace}/{table_name}/metadata/00000-{uuid.uuid4()}.metadata.json"
+        )
 
         response = {
             "metadata-location": str(metadata_location),
@@ -259,8 +250,8 @@ def create_table(namespace):
                 "default-sort-order-id": 0,
                 "snapshots": [],
                 "snapshot-log": [],
-                "metadata-log": []
-            }
+                "metadata-log": [],
+            },
         }
 
         logger.info(f"✓ Created table {namespace}.{table_name}")
@@ -268,16 +259,10 @@ def create_table(namespace):
 
     except Exception as e:
         logger.error(f"Error creating table {namespace}.{table_name}: {e}", exc_info=True)
-        return jsonify({
-            "error": {
-                "message": str(e),
-                "type": "Exception",
-                "code": 500
-            }
-        }), 500
+        return jsonify({"error": {"message": str(e), "type": "Exception", "code": 500}}), 500
 
 
-@app.route('/v1/namespaces/<namespace>/tables/<table_name>', methods=['GET'])
+@app.route("/v1/namespaces/<namespace>/tables/<table_name>", methods=["GET"])
 def load_table(namespace, table_name):
     """
     Load table metadata.
@@ -318,7 +303,7 @@ def load_table(namespace, table_name):
 
         response = {
             "metadata-location": f"{warehouse_path}/{namespace}/{table_name}/metadata/current.json",
-            "metadata": metadata
+            "metadata": metadata,
         }
 
         logger.info(f"Loaded table {namespace}.{table_name}")
@@ -326,16 +311,18 @@ def load_table(namespace, table_name):
 
     except Exception as e:
         logger.error(f"Error loading table {namespace}.{table_name}: {e}")
-        return jsonify({
-            "error": {
-                "message": f"Table not found: {namespace}.{table_name}",
-                "type": "NoSuchTableException",
-                "code": 404
+        return jsonify(
+            {
+                "error": {
+                    "message": f"Table not found: {namespace}.{table_name}",
+                    "type": "NoSuchTableException",
+                    "code": 404,
+                }
             }
-        }), 404
+        ), 404
 
 
-@app.route('/v1/namespaces/<namespace>/tables/<table_name>', methods=['POST'])
+@app.route("/v1/namespaces/<namespace>/tables/<table_name>", methods=["POST"])
 def update_table(namespace, table_name):
     """
     Update table metadata.
@@ -357,7 +344,7 @@ def update_table(namespace, table_name):
                 "format-version": 2,
                 "table-uuid": str(table.metadata.table_uuid),
                 "location": table.location(),
-            }
+            },
         }
 
         logger.info(f"✓ Updated table {namespace}.{table_name}")
@@ -368,7 +355,7 @@ def update_table(namespace, table_name):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/v1/namespaces/<namespace>/tables/<table_name>', methods=['DELETE'])
+@app.route("/v1/namespaces/<namespace>/tables/<table_name>", methods=["DELETE"])
 def drop_table(namespace, table_name):
     """
     Drop a table.
@@ -377,12 +364,12 @@ def drop_table(namespace, table_name):
     - purgeRequested: if true, delete all data files
     """
     try:
-        purge = request.args.get('purgeRequested', 'false').lower() == 'true'
+        purge = request.args.get("purgeRequested", "false").lower() == "true"
 
         catalog.drop_table(f"{namespace}.{table_name}")
 
         logger.info(f"Dropped table {namespace}.{table_name} (purge={purge})")
-        return '', 204
+        return "", 204
 
     except Exception as e:
         logger.error(f"Error dropping table {namespace}.{table_name}: {e}")
@@ -393,6 +380,7 @@ def drop_table(namespace, table_name):
 # HELPER FUNCTIONS
 # ============================================================================
 
+
 def _convert_schema(schema_data: dict) -> Schema:
     """
     Convert REST API schema format to PyIceberg Schema.
@@ -401,16 +389,18 @@ def _convert_schema(schema_data: dict) -> Schema:
     PyIceberg: Schema(NestedField(...), NestedField(...))
     """
     fields = []
-    for field in schema_data.get('fields', []):
-        field_type = _convert_type(field['type'])
-        fields.append(NestedField(
-            field_id=field['id'],
-            name=field['name'],
-            field_type=field_type,
-            required=field.get('required', False),
-        ))
+    for field in schema_data.get("fields", []):
+        field_type = _convert_type(field["type"])
+        fields.append(
+            NestedField(
+                field_id=field["id"],
+                name=field["name"],
+                field_type=field_type,
+                required=field.get("required", False),
+            )
+        )
 
-    return Schema(*fields, schema_id=schema_data.get('schema-id', 0))
+    return Schema(*fields, schema_id=schema_data.get("schema-id", 0))
 
 
 def _convert_type(type_spec):
@@ -422,31 +412,31 @@ def _convert_type(type_spec):
     if isinstance(type_spec, str):
         # Primitive types
         type_map = {
-            'string': StringType(),
-            'double': DoubleType(),
-            'timestamptz': TimestamptzType(),
+            "string": StringType(),
+            "double": DoubleType(),
+            "timestamptz": TimestamptzType(),
         }
         return type_map.get(type_spec, StringType())
 
     elif isinstance(type_spec, dict):
         # Complex types
-        if type_spec['type'] == 'list':
-            element_type = _convert_type(type_spec['element'])
+        if type_spec["type"] == "list":
+            element_type = _convert_type(type_spec["element"])
             return ListType(
-                element_id=type_spec.get('element-id', 1),
+                element_id=type_spec.get("element-id", 1),
                 element_type=element_type,
-                element_required=type_spec.get('element-required', False)
+                element_required=type_spec.get("element-required", False),
             )
-        elif type_spec['type'] == 'struct':
+        elif type_spec["type"] == "struct":
             # Recursively convert struct fields
             fields = [
                 NestedField(
-                    field_id=f['id'],
-                    name=f['name'],
-                    field_type=_convert_type(f['type']),
-                    required=f.get('required', False)
+                    field_id=f["id"],
+                    name=f["name"],
+                    field_type=_convert_type(f["type"]),
+                    required=f.get("required", False),
                 )
-                for f in type_spec['fields']
+                for f in type_spec["fields"]
             ]
             return StructType(*fields)
 
@@ -460,8 +450,16 @@ def _type_to_dict(field_type):
     Handles primitive types (string, double, etc.) and complex types (list, struct).
     """
     from pyiceberg.types import (
-        StringType, DoubleType, TimestamptzType, IntegerType, LongType,
-        FloatType, BooleanType, ListType, StructType, MapType
+        BooleanType,
+        DoubleType,
+        FloatType,
+        IntegerType,
+        ListType,
+        LongType,
+        MapType,
+        StringType,
+        StructType,
+        TimestamptzType,
     )
 
     # Primitive types - return as string
@@ -486,7 +484,7 @@ def _type_to_dict(field_type):
             "type": "list",
             "element-id": field_type.element_id,
             "element": _type_to_dict(field_type.element_type),
-            "element-required": field_type.element_required
+            "element-required": field_type.element_required,
         }
     elif isinstance(field_type, StructType):
         return {
@@ -496,10 +494,10 @@ def _type_to_dict(field_type):
                     "id": f.field_id,
                     "name": f.name,
                     "type": _type_to_dict(f.field_type),
-                    "required": f.required
+                    "required": f.required,
                 }
                 for f in field_type.fields
-            ]
+            ],
         }
     elif isinstance(field_type, MapType):
         return {
@@ -508,7 +506,7 @@ def _type_to_dict(field_type):
             "key": _type_to_dict(field_type.key_type),
             "value-id": field_type.value_id,
             "value": _type_to_dict(field_type.value_type),
-            "value-required": field_type.value_required
+            "value-required": field_type.value_required,
         }
 
     # Fallback: return string representation
@@ -530,7 +528,7 @@ def _schema_to_dict(schema: Schema) -> dict:
                 "required": field.required,
             }
             for field in schema.fields
-        ]
+        ],
     }
 
 
@@ -538,31 +536,29 @@ def _schema_to_dict(schema: Schema) -> dict:
 # HEALTH & MONITORING
 # ============================================================================
 
-@app.route('/health', methods=['GET'])
+
+@app.route("/health", methods=["GET"])
 def health():
     """Health check endpoint."""
-    return jsonify({
-        "status": "healthy",
-        "catalog": "iceberg-rest",
-        "warehouse": str(warehouse_path)
-    })
+    return jsonify(
+        {"status": "healthy", "catalog": "iceberg-rest", "warehouse": str(warehouse_path)}
+    )
 
 
-@app.route('/metrics', methods=['GET'])
+@app.route("/metrics", methods=["GET"])
 def metrics():
     """Metrics endpoint for monitoring."""
     try:
         namespaces = list(catalog.list_namespaces())
-        total_tables = sum(
-            len(list(catalog.list_tables(ns)))
-            for ns in namespaces
-        )
+        total_tables = sum(len(list(catalog.list_tables(ns))) for ns in namespaces)
 
-        return jsonify({
-            "namespaces": len(namespaces),
-            "tables": total_tables,
-            "warehouse": str(warehouse_path),
-        })
+        return jsonify(
+            {
+                "namespaces": len(namespaces),
+                "tables": total_tables,
+                "warehouse": str(warehouse_path),
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -570,6 +566,7 @@ def metrics():
 # ============================================================================
 # STARTUP
 # ============================================================================
+
 
 def main():
     """Start the Iceberg REST Catalog server."""
@@ -580,21 +577,21 @@ def main():
     except Exception:
         logger.info("Namespace weather_data already exists")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("🎓 CUSTOM ICEBERG REST CATALOG SERVER")
-    print("="*70)
+    print("=" * 70)
     print(f"  Catalog DB:  {catalog_db}")
     print(f"  Warehouse:   {warehouse_path}")
-    print(f"  REST API:    http://localhost:8181")
-    print(f"  Health:      http://localhost:8181/health")
-    print(f"  Metrics:     http://localhost:8181/metrics")
-    print("="*70)
+    print("  REST API:    http://localhost:8181")
+    print("  Health:      http://localhost:8181/health")
+    print("  Metrics:     http://localhost:8181/metrics")
+    print("=" * 70)
     print("\nImplements Apache Iceberg REST Catalog Specification")
     print("Learn more: https://github.com/apache/iceberg/blob/main/open-api/")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
-    app.run(host='0.0.0.0', port=8181, debug=True)
+    app.run(host="0.0.0.0", port=8181, debug=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

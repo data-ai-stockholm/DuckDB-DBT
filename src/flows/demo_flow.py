@@ -11,7 +11,7 @@ from prefect.tasks import task_input_hash
     name="greet-user",
     description="Greet the user with a friendly message",
     retries=2,
-    retry_delay_seconds=5
+    retry_delay_seconds=5,
 )
 def greet_user(name: str = "Data Engineer"):
     """Greet the user."""
@@ -23,55 +23,40 @@ def greet_user(name: str = "Data Engineer"):
     name="fetch-data",
     description="Simulate fetching data from an API",
     cache_key_fn=task_input_hash,
-    cache_expiration=timedelta(minutes=5)
+    cache_expiration=timedelta(minutes=5),
 )
 def fetch_data(source: str):
     """Simulate data fetching."""
     print(f"📥 Fetching data from {source}...")
     sleep(1)  # Simulate network delay
-    data = {
-        "source": source,
-        "records": 100,
-        "status": "success"
-    }
+    data = {"source": source, "records": 100, "status": "success"}
     print(f"✅ Fetched {data['records']} records from {source}")
     return data
 
 
-@task(
-    name="process-data",
-    description="Transform and process the data",
-    retries=1
-)
+@task(name="process-data", description="Transform and process the data", retries=1)
 def process_data(data: dict):
     """Process the fetched data."""
     print(f"🔄 Processing {data['records']} records...")
     sleep(0.5)  # Simulate processing
-    processed = {
-        **data,
-        "processed": True,
-        "timestamp": "2025-12-06T10:00:00Z"
-    }
-    print(f"✅ Processing complete!")
+    processed = {**data, "processed": True, "timestamp": "2025-12-06T10:00:00Z"}
+    print("✅ Processing complete!")
     return processed
 
 
-@task(
-    name="save-data",
-    description="Save processed data to storage"
-)
+@task(name="save-data", description="Save processed data to storage")
 def save_data(data: dict):
     """Save the processed data."""
-    print(f"💾 Saving data to warehouse...")
+    print("💾 Saving data to warehouse...")
     sleep(0.3)  # Simulate write operation
-    print(f"✅ Data saved successfully!")
+    print("✅ Data saved successfully!")
     return {"saved": True, "location": "warehouse/demo_data"}
 
 
 @flow(
     name="demo-pipeline",
     description="Demo flow showcasing Prefect orchestration features",
-    log_prints=True
+    log_prints=True,
 )
 def demo_pipeline(user_name: str = "Weather Data Engineer"):
     """
@@ -104,7 +89,7 @@ def demo_pipeline(user_name: str = "Weather Data Engineer"):
     print("\n" + "=" * 70)
     print("✨ PIPELINE COMPLETED SUCCESSFULLY")
     print("=" * 70)
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  • Greeting: {greeting_result}")
     print(f"  • Records fetched: {data_result['records']}")
     print(f"  • Processing status: {processed_data['processed']}")
@@ -116,7 +101,7 @@ def demo_pipeline(user_name: str = "Weather Data Engineer"):
         "greeting": greeting_result,
         "data": data_result,
         "processed": processed_data,
-        "saved": save_result
+        "saved": save_result,
     }
 
 

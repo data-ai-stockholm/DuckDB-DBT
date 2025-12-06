@@ -5,9 +5,10 @@ from datetime import timedelta
 from prefect import flow, task
 from prefect.tasks import task_input_hash
 
+from src.ingestion.fetch_observations import main as fetch_observations_main
+
 # Import the actual functions instead of using subprocess
 from src.ingestion.fetch_stations import main as fetch_stations_main
-from src.ingestion.fetch_observations import main as fetch_observations_main
 from src.ingestion.write_observations import main as load_observations_main
 
 
@@ -17,7 +18,7 @@ from src.ingestion.write_observations import main as load_observations_main
     retries=3,
     retry_delay_seconds=30,
     cache_key_fn=task_input_hash,
-    cache_expiration=timedelta(hours=24)
+    cache_expiration=timedelta(hours=24),
 )
 def fetch_stations():
     """Fetch weather station data."""
@@ -30,7 +31,7 @@ def fetch_stations():
     name="fetch-weather-observations",
     description="Fetch weather observations from NWS API",
     retries=3,
-    retry_delay_seconds=30
+    retry_delay_seconds=30,
 )
 def fetch_observations():
     """Fetch weather observation data."""
@@ -43,7 +44,7 @@ def fetch_observations():
     name="load-observations-to-iceberg",
     description="Load observations into Iceberg tables",
     retries=2,
-    retry_delay_seconds=60
+    retry_delay_seconds=60,
 )
 def load_observations():
     """Load observations into Iceberg tables."""
@@ -55,7 +56,7 @@ def load_observations():
 @flow(
     name="weather-data-ingestion",
     description="Complete weather data ingestion pipeline",
-    log_prints=True
+    log_prints=True,
 )
 def weather_ingestion_flow():
     """
@@ -86,14 +87,11 @@ def weather_ingestion_flow():
             "status": "success",
             "stations": stations_result,
             "observations": observations_result,
-            "load": load_result
+            "load": load_result,
         }
     except Exception as e:
         print(f"\n❌ Error during ingestion: {str(e)}")
-        return {
-            "status": "failed",
-            "error": str(e)
-        }
+        return {"status": "failed", "error": str(e)}
 
 
 if __name__ == "__main__":

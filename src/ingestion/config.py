@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 from dotenv import load_dotenv
@@ -75,12 +75,12 @@ class Config:
         """Get the data directory for local storage."""
         return self._config["storage"]["local"]["data_dir"]
 
-    def get_storage_config(self) -> Dict[str, Any]:
+    def get_storage_config(self) -> dict[str, Any]:
         """Get storage configuration for the current backend."""
         backend = self.storage_backend
         return self._config["storage"][backend]
 
-    def get_iceberg_config(self) -> Dict[str, Any]:
+    def get_iceberg_config(self) -> dict[str, Any]:
         """Get Iceberg configuration."""
         return self._config["iceberg"]
 
@@ -93,11 +93,11 @@ class Config:
         else:
             return self._config["storage"][backend]["warehouse_path"]
 
-    def get_api_config(self) -> Dict[str, Any]:
+    def get_api_config(self) -> dict[str, Any]:
         """Get API configuration."""
         return self._config["api"]
 
-    def get_processing_config(self) -> Dict[str, Any]:
+    def get_processing_config(self) -> dict[str, Any]:
         """Get processing configuration."""
         return self._config["processing"]
 

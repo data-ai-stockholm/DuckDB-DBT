@@ -1,7 +1,8 @@
 """Fetch weather station data from the API and store it in Parquet files."""
 
-import duckdb
 from pathlib import Path
+
+import duckdb
 
 
 def main():
@@ -55,7 +56,7 @@ def main():
 
     conn.close()
     print(f"\n✓ Completed! Fetched {page_count} pages of station data")
-    print(f"  Data saved to: ingestion_data/stations/")
+    print("  Data saved to: ingestion_data/stations/")
 
 
 if __name__ == "__main__":
