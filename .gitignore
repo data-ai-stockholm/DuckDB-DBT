@@ -1,9 +1,14 @@
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*$py.class
+*.so
+*.egg
 *.egg-info/
 dist/
 build/
+*.whl
 
 # Virtual environments
 .venv/
@@ -15,6 +20,8 @@ ingestion_data/
 warehouse/
 *.db
 *.duckdb
+*.sqlite
+weather_reports.db
 
 # dbt
 target/

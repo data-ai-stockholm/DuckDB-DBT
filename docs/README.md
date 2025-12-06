@@ -1,6 +1,15 @@
 # Weather Data Pipeline with DuckDB, dbt & Apache Iceberg
 
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Poetry](https://img.shields.io/badge/dependency-poetry-purple)](https://python-poetry.org/)
+[![DuckDB](https://img.shields.io/badge/DuckDB-1.4.2+-yellow)](https://duckdb.org/)
+[![dbt](https://img.shields.io/badge/dbt-1.10+-orange)](https://www.getdbt.com/)
+[![Prefect](https://img.shields.io/badge/Prefect-3.6+-blue)](https://www.prefect.io/)
+[![Apache Iceberg](https://img.shields.io/badge/Iceberg-REST-green)](https://iceberg.apache.org/)
+
 Modern data pipeline demonstrating **DuckDB**, **dbt**, and **Apache Iceberg** integration with a custom REST catalog implementation.
+
+> 🎯 **Production-ready** data engineering project showcasing modern lakehouse architecture, workflow orchestration, and CI/CD best practices.
 
 ## Features
 
@@ -271,13 +280,49 @@ See [CLAUDE.md](CLAUDE.md) for:
 - Production deployment guide
 - Troubleshooting & best practices
 
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for:
+- Development setup
+- Code style guidelines
+- Pull request process
+- Testing requirements
+
+## Project Highlights
+
+✨ **What makes this project special:**
+
+- **Custom REST Catalog**: Full implementation of Apache Iceberg REST spec
+- **Production Orchestration**: Prefect with on-demand and scheduled flows
+- **Modern Stack**: DuckDB 1.4.2+ with native Iceberg support
+- **CI/CD Pipeline**: GitHub Actions for automated testing and validation
+- **Clean Architecture**: Modular structure for easy contribution
+- **Comprehensive Docs**: Both user guides and technical deep-dives
+
+## Use Cases
+
+This project demonstrates patterns for:
+- Building data lakehouses with Apache Iceberg
+- Implementing custom Iceberg catalogs
+- Orchestrating data pipelines with Prefect
+- Using dbt for data transformations
+- Integrating DuckDB with Iceberg
+- CI/CD for data pipelines
+
 ## Resources
 
 - [Apache Iceberg](https://iceberg.apache.org/)
 - [DuckDB Iceberg Extension](https://duckdb.org/docs/extensions/iceberg)
 - [dbt Documentation](https://docs.getdbt.com/)
 - [PyIceberg](https://py.iceberg.apache.org/)
+- [Prefect Documentation](https://docs.prefect.io/)
+
+## License
+
+MIT License - feel free to use this project for learning and commercial purposes.
 
 ---
 
-Built with ❤️ for learning modern data engineering
+**Built with ❤️ for the data engineering community**
+
+*If you find this project helpful, please consider giving it a ⭐ on GitHub!*
