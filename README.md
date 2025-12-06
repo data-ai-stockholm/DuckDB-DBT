@@ -1,197 +1,190 @@
-# Weather Data Pipeline with DuckDB & dbt
+# Weather Data Pipeline with DuckDB, dbt & Apache Iceberg
 
-A data pipeline for fetching, storing, and transforming weather observation data using DuckDB and dbt.
+Modern data pipeline demonstrating **DuckDB**, **dbt**, and **Apache Iceberg** integration with a custom REST catalog implementation.
 
-## Prerequisites
+## Features
 
-- Python 3.12+
-- DuckDB CLI
-- dbt-duckdb
+- ✅ **Custom Iceberg REST Catalog** - Educational implementation of Apache Iceberg REST spec
+- ✅ **DuckDB Integration** - Native Iceberg support with DuckDB v1.4.2+
+- ✅ **dbt Transformations** - Data modeling and transformations
+- ✅ **Multi-Cloud Ready** - Supports local, S3, Azure Blob Storage, GCS
+- ✅ **Poetry** - Modern Python dependency management
 
-## Setup
+## Quick Start
 
 ### 1. Install Dependencies
 
 ```bash
-pip install duckdb dbt-duckdb --break-system-packages
+poetry install
 ```
 
-### 2. Install DuckDB CLI
+### 2. Start REST Catalog Server
 
 ```bash
-# Extract the DuckDB CLI binary
-unzip duckdb_cli-linux-amd64.zip
-chmod +x duckdb
+poetry run catalog-server
 ```
 
-### 3. Set up dbt Profile
+### 3. Run Demo
 
-Ensure `profiles.yml` exists in your project root with:
+```bash
+poetry run python examples/test_catalog.py
+```
+
+This creates an Iceberg table, writes synthetic data, and queries it with DuckDB.
+
+### 4. Fetch Real Weather Data (Optional)
+
+```bash
+poetry run fetch-stations
+poetry run fetch-observations
+poetry run load-observations
+```
+
+### 5. Run dbt Transformations
+
+```bash
+poetry run dbt run --profiles-dir .
+poetry run dbt test --profiles-dir .
+```
+
+## Project Structure
+
+```
+duckdb-dbt/
+├── src/
+│   ├── catalog/
+│   │   └── rest_server.py       # Custom Iceberg REST catalog
+│   └── ingestion/
+│       ├── config.py            # Configuration management
+│       ├── iceberg_manager.py   # DuckDB Iceberg integration
+│       ├── fetch_stations.py    # Weather station fetcher
+│       ├── fetch_observations.py # Weather data fetcher
+│       └── write_observations.py # Data loader
+├── examples/
+│   └── test_catalog.py          # Demo script
+├── models/                      # dbt transformations
+│   ├── staging/                 # Staging models
+│   └── marts/                   # Business logic models
+├── config.yaml                  # Multi-backend configuration
+├── dbt_project.yml              # dbt configuration
+├── profiles.yml                 # dbt profiles
+├── pyproject.toml               # Poetry dependencies
+└── warehouse/                   # Iceberg data lake
+```
+
+## Configuration
+
+Edit `config.yaml` to configure storage backends and catalog settings:
 
 ```yaml
-weather:
-  target: dev
-  outputs:
-    dev:
-      type: duckdb
-      path: "weather_reports.db"
-      threads: 4
+# Storage: local, s3, azure, gcs
+storage:
+  backend: local
+
+# Table format: duckdb or iceberg
+table_format: iceberg
+
+# Iceberg REST catalog
+iceberg:
+  catalog:
+    type: rest
+    uri: http://localhost:8181
 ```
 
-## Data Ingestion
-
-### Fetch Weather Stations
-
-Downloads weather station metadata from the API:
+## Commands
 
 ```bash
-python3 ingestion/fetch_stations.py
+# Start catalog server
+poetry run catalog-server
+
+# Fetch weather data
+poetry run fetch-stations
+poetry run fetch-observations
+
+# Load data to Iceberg
+poetry run load-observations
+
+# Run dbt
+poetry run dbt run --profiles-dir .
+poetry run dbt test --profiles-dir .
 ```
 
-Data is saved to: `ingestion/ingestion_data/stations/*.parquet`
+## What's Inside
 
-### Fetch Observations
+### Custom REST Catalog
 
-Downloads weather observations for each station:
+A complete implementation of the Apache Iceberg REST Catalog specification:
+- Namespace management (create, list, delete)
+- Table operations (create, read, update, delete)
+- Proper schema conversion (REST ↔ PyIceberg)
+- Complex type handling (lists, structs, maps)
+- Snapshot and metadata management
 
-```bash
-python3 ingestion/fetch_observations.py
+### Iceberg Table Format
+
+Real Iceberg tables with proper structure:
+```
+warehouse/
+└── weather_data.db/
+    └── observations/
+        ├── data/
+        │   └── *.parquet          # Data files
+        └── metadata/
+            ├── *.metadata.json    # Schema + snapshots
+            └── *.avro             # Manifests
 ```
 
-Data is saved to: `ingestion/ingestion_data/observations/*.parquet`
+### dbt Models
 
-**Note:** This can take several hours as it fetches data for each station individually.
+**Staging Layer:**
+- **stg_observations** - Cleaned weather observations from source
 
-### Load Data into DuckDB
+**Marts Layer:**
+- **fact_observations** - Enriched observations with temporal attributes
+- **fact_daily_weather** - Daily weather aggregates by station
+- **dim_stations** - Station dimension table
+- **extreme_weather_events** - Statistical anomaly detection (Z-score based)
 
-Load the Parquet files into the DuckDB database:
+## Architecture
 
-```bash
-# Load stations
-python3 ingestion/write_stations.py
-
-# Load observations
-python3 ingestion/write_observations.py
+```
+┌─────────────┐
+│   DuckDB    │ ──────┐
+└─────────────┘       │
+                       ├──→ ┌──────────────────┐
+┌─────────────┐       │    │  REST Catalog    │
+│     dbt     │ ──────┘    │  (Port 8181)     │
+└─────────────┘            └──────────────────┘
+                                     │
+                                     ↓
+                           ┌──────────────────┐
+                           │  PyIceberg +     │
+                           │  SQLite Catalog  │
+                           └──────────────────┘
+                                     │
+                                     ↓
+                           ┌──────────────────┐
+                           │   Warehouse      │
+                           │   (Iceberg)      │
+                           └──────────────────┘
 ```
 
-This creates the `stations` and `observations` tables in `weather_reports.db`.
+## Learn More
 
-## Data Transformation with dbt
+See [CLAUDE.md](CLAUDE.md) for detailed technical documentation including:
+- Iceberg architecture deep-dive
+- REST catalog protocol details
+- Schema conversion internals
+- Troubleshooting guide
+- Production deployment considerations
 
-Run dbt models to transform raw data:
+## Resources
 
-```bash
-dbt run
-```
+- [Apache Iceberg](https://iceberg.apache.org/)
+- [DuckDB Iceberg Extension](https://duckdb.org/docs/extensions/iceberg)
+- [dbt Documentation](https://docs.getdbt.com/)
+- [PyIceberg](https://py.iceberg.apache.org/)
 
-This creates the following tables:
+---
 
-### Dimension Tables
-- **`dim_stations`** - Unique weather stations with location information
-
-### Fact Tables
-- **`fact_observations`** - Cleaned observations with data quality checks applied
-  - Removes invalid temperature readings (< -100°C or > 60°C)
-  - Validates wind speeds, humidity percentages
-  - Adds date/time components for easier analysis
-  
-- **`fact_daily_weather`** - Daily aggregated weather metrics by station
-  - Average, min, max temperatures
-  - Maximum wind speeds and gusts
-  - Total daily precipitation
-  - Data quality counts
-
-### Analytics Tables
-- **`extreme_weather_events`** - Identified extreme weather events
-  - Extreme Heat: ≥ 40°C
-  - Extreme Cold: ≤ -30°C
-  - High Winds: ≥ 75 km/h
-  - Extreme Gusts: ≥ 100 km/h
-  - Heavy Precipitation: ≥ 50mm per day
-  - Large Temperature Swings: ≥ 30°C daily range
-
-## Querying Data
-
-Open the DuckDB CLI:
-
-```bash
-./duckdb weather_reports.db
-```
-
-Example queries:
-
-```sql
--- Show all tables
-SHOW TABLES;
-
--- View stations
-SELECT * FROM dim_stations LIMIT 10;
-
--- Count observations
-SELECT COUNT(*) FROM observations;
-SELECT COUNT(*) FROM fact_observations;
-
--- Check daily weather aggregates
-SELECT * FROM fact_daily_weather 
-ORDER BY observation_date DESC 
-LIMIT 10;
-
--- Find extreme weather events
-SELECT 
-    observation_date,
-    station_name,
-    event_types,
-    max_temp_degC,
-    max_wind_speed_kmh
-FROM extreme_weather_events 
-ORDER BY observation_date DESC 
-LIMIT 20;
-
--- Exit
-.exit
-```
-
-## Troubleshooting
-
-### Empty Parquet Files
-
-If you encounter errors about files being too small, remove empty Parquet files:
-
-```bash
-find ingestion/ingestion_data/observations/ -name "*.parquet" -size 0 -delete
-```
-
-### dbt Command Not Found
-
-If `dbt` is not in your PATH after installation, add it:
-
-```bash
-export PATH="/home/codespace/.local/bin:$PATH"
-```
-
-Or run dbt commands with the full path:
-
-```bash
-/home/codespace/.local/bin/dbt run
-```
-
-### Running Specific Models
-
-```bash
-# Run only one model
-dbt run --select fact_observations
-
-# Run a model and its downstream dependencies
-dbt run --select fact_observations+
-
-# Run all models in a specific folder
-dbt run --select models/facts/
-```
-
-## Future Enhancements
-
-- Add geographic dimension tables (regions, states, counties)
-- Create time-series analysis models
-- Add data quality tests
-- Implement incremental models for large datasets
-- Add visualization layer
+Built with ❤️ for learning modern data engineering

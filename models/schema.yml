@@ -1,46 +1,79 @@
 version: 2
+
 sources:
-  - name: main
+  - name: weather
+    description: Raw weather data from National Weather Service
     tables:
       - name: observations
-        description: "Weather observations from all stations"
-      - name: stations
-        description: "Weather station URLs from API"
-        
+        description: Weather observations from stations
+
 models:
-  - name: dim_stations
-    description: "Unique weather stations with their locations extracted from observations data."
-    
+  - name: stg_observations
+    description: Staging view for weather observations
+    columns:
+      - name: observation_timestamp
+        description: Timestamp of the observation
+      - name: observation_id
+        description: Unique observation identifier
+      - name: station_id
+        description: Weather station identifier
+      - name: temperature_degC
+        description: Temperature in Celsius
+
   - name: fact_observations
-    description: "Cleaned fact table of weather observations with invalid data removed and calculated fields added."
+    description: Fact table with enriched weather observations including temporal attributes
     columns:
       - name: observation_id
-        description: "Unique identifier for each observation"
-      - name: station_id
-        description: "Station identifier"
+        description: Unique observation identifier
       - name: observation_timestamp
-        description: "Timestamp of the observation"
-      - name: temperature_degC
-        description: "Temperature in Celsius (validated range: -100 to 60)"
-        
+        description: Timestamp of the observation
+      - name: station_id
+        description: Weather station identifier
+      - name: observation_date
+        description: Date of observation (truncated to day)
+      - name: observation_hour
+        description: Hour of observation (0-23)
+      - name: day_of_week
+        description: Day of week (0=Sunday, 6=Saturday)
+
   - name: fact_daily_weather
-    description: "Daily aggregated weather metrics by station."
+    description: Daily weather aggregates by station
     columns:
-      - name: observation_date
-        description: "Date of observations"
       - name: station_id
-        description: "Station identifier"
-      - name: avg_temp_degC
-        description: "Average daily temperature in Celcius"
-      - name: max_wind_speed_kmh
-        description: "Maximum wind speed for the day"
-        
+        description: Weather station identifier
+      - name: observation_date
+        description: Date of aggregation
+      - name: observation_count
+        description: Number of observations for the day
+      - name: avg_temperature_degC
+        description: Average daily temperature
+      - name: min_temperature_degC
+        description: Minimum daily temperature
+      - name: max_temperature_degC
+        description: Maximum daily temperature
+
+  - name: dim_stations
+    description: Dimension table for weather stations
+    columns:
+      - name: station_id
+        description: Weather station identifier
+      - name: first_observation
+        description: Timestamp of first observation from this station
+      - name: last_observation
+        description: Timestamp of last observation from this station
+      - name: total_observations
+        description: Total number of observations from this station
+
   - name: extreme_weather_events
-    description: "Identified extreme weather events (heat waves, cold snaps, high winds, heavy precipitation)."
+    description: Anomaly detection for extreme weather events using statistical methods
     columns:
-      - name: observation_date
-        description: "Date of the event"
-      - name: event_types
-        description: "Types of extreme events detected"
+      - name: observation_id
+        description: Unique observation identifier
       - name: station_id
-        description: "Station where event was recorded"
+        description: Weather station identifier
+      - name: temperature_degC
+        description: Observed temperature
+      - name: temp_z_score
+        description: Z-score of temperature deviation from station average
+      - name: temperature_category
+        description: Classification - Normal, Unusual, or Extreme

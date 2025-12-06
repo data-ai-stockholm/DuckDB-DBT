@@ -1,8 +1,44 @@
-.duckdb-end-to-end/
-ingestion_data/
-weather_reports.db
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
 
-# Ignore dbt artifacts
-logs/
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data & Warehouse
+ingestion_data/
+warehouse/
+*.db
+*.duckdb
+
+# dbt
 target/
+dbt_packages/
+logs/
 .user.yml
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
