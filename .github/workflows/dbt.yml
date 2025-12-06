@@ -4,15 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'models/**'
-      - 'dbt_project.yml'
-      - 'profiles.yml'
+      - 'dbt/**'
+      - 'config/**'
   pull_request:
     branches: [main, develop]
     paths:
-      - 'models/**'
-      - 'dbt_project.yml'
-      - 'profiles.yml'
+      - 'dbt/**'
+      - 'config/**'
 
 jobs:
   dbt-check:
@@ -37,14 +35,14 @@ jobs:
         run: poetry install --no-interaction
 
       - name: dbt debug
-        run: poetry run dbt debug --profiles-dir .
+        run: poetry run dbt debug --project-dir dbt --profiles-dir dbt
 
       - name: dbt deps
-        run: poetry run dbt deps --profiles-dir .
+        run: poetry run dbt deps --project-dir dbt --profiles-dir dbt
         continue-on-error: true
 
       - name: dbt compile
-        run: poetry run dbt compile --profiles-dir .
+        run: poetry run dbt compile --project-dir dbt --profiles-dir dbt
 
       - name: dbt parse
-        run: poetry run dbt parse --profiles-dir .
+        run: poetry run dbt parse --project-dir dbt --profiles-dir dbt
