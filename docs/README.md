@@ -243,20 +243,23 @@ graph LR
 
     subgraph "CI/CD Pipeline"
         GH[GitHub Repo]
-        GHA[GitHub Actions<br/>(CI: Test / CD: Deploy)]
+        GHA["GitHub Actions
+        (CI: Test / CD: Deploy)"]
     end
 
     subgraph "Orchestration"
         Prefect[Prefect Cloud/Server]
     end
 
-    subgraph "Execution Plane (Serverless)"
+    subgraph "Execution Plane"
         Agent[Prefect Agent/Runner]
-        DuckDB[DuckDB Engine<br/>(dbt-duckdb)]
+        DuckDB["DuckDB Engine
+        (dbt-duckdb)"]
     end
 
     subgraph "Data Lake"
-        Iceberg[(Iceberg Tables<br/>S3/GCS)]
+        Iceberg[("Iceberg Tables
+        S3/GCS")]
     end
 
     %% Flows
