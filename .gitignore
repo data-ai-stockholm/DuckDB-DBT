@@ -20,7 +20,7 @@ warehouse/
 target/
 dbt_packages/
 logs/
-.user.yml
+dbt/.user.yml
 
 # Environment
 .env
@@ -30,7 +30,7 @@ logs/
 .idea/
 .DS_Store
 
-# Cache
+# Cache & Testing
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -42,3 +42,8 @@ htmlcov/
 
 # Logs
 *.log
+
+# Process tracking
+.prefect.pid
+.catalog.pid
+.deploy.pid

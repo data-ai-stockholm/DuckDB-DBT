@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 class Config:
     """Configuration manager for the pipeline."""
 
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config_path: str = "config/storage.yaml"):
         """Initialize configuration from YAML file and environment variables."""
         # Load environment variables
         load_dotenv()
