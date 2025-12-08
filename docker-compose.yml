@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  ingestion_service:
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    image: weather-ingest:latest
+    container_name: ingestion_service
+    restart: unless-stopped
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./ingestion_data:/app/ingestion_data
+      - ./ingestion:/app/ingestion:ro
+    working_dir: /app
+    # command: ["sleep", "infinity"]
+    command: ["python", "ingestion/ingestion_service.py"]
+    stdin_open: true
+    tty: true
+
+  transformation_service:
+    build:
+      context: .
+      dockerfile: transformation/Dockerfile
+    image: weather-transform:latest
+    container_name: transformation_service
+    restart: unless-stopped
+    environment:
+      - DBT_PROFILES_DIR=/app/transformation
+    volumes:
+      - ./transformation:/app/transformation
+      - ./ingestion_data:/app/ingestion_data
+    working_dir: /app/transformation
+    command: ["./transformation_service.sh"]
+    stdin_open: true
+    tty: true
+
+  visualization_service:
+    build:
+      context: .
+      dockerfile: visualization/Dockerfile
+    image: weather-visualize:latest
+    container_name: visualization_service
+    restart: unless-stopped
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./visualization:/app/visualization
+      - ./transformation/weather_reports.db:/app/transformation/weather_reports.db:ro
+    working_dir: /app/visualization
+    ports:
+      - "8501:8501"
+    command: ["streamlit", "run", "visualization_service.py"]
+    stdin_open: true
+    tty: true

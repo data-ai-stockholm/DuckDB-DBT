@@ -1,8 +1,18 @@
 .duckdb-end-to-end/
 ingestion_data/
 weather_reports.db
+weather_reports_ro.db
 
 # Ignore dbt artifacts
 logs/
 target/
 .user.yml
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore system files
+.DS_Store
