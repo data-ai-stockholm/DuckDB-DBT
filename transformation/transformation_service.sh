@@ -7,7 +7,7 @@ set -euo pipefail
 INTERVAL=30  # seconds (0.5 minute)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DBT_PROJECT_DIR="$(cd "${SCRIPT_DIR}" && pwd)"  # adjust if your dbt project lives elsewhere
-DBT_CMD="dbt run --profiles-dir ."
+DBT_CMD="dbt run"
 
 OBS_DIR="${SCRIPT_DIR}/../ingestion_data/observations"
 STATIONS_DIR="${SCRIPT_DIR}/../ingestion_data/stations"

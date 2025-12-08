@@ -3,6 +3,7 @@ import streamlit as st
 import duckdb
 import pandas as pd
 import shutil
+import os
 
 # Page layout settings
 st.set_page_config(
@@ -12,6 +13,10 @@ st.set_page_config(
 # Creating the read-only database for visualization
 write_db_path = "../transformation/weather_reports.db"
 read_db_path = "../visualization/weather_reports_ro.db"
+
+while not (os.path.exists(write_db_path)):
+    st.warning("Waiting for the transformed database to be created...")
+    st.sleep(5)
 
 try:
     # Copy the file to the destination directory
