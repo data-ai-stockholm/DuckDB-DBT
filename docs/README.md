@@ -7,13 +7,14 @@
 [![Prefect](https://img.shields.io/badge/Prefect-3.6+-blue)](https://www.prefect.io/)
 [![Apache Iceberg](https://img.shields.io/badge/Iceberg-REST-green)](https://iceberg.apache.org/)
 
-Modern data pipeline demonstrating **DuckDB**, **dbt**, and **Apache Iceberg** integration with a custom REST catalog implementation.
+Modern data pipeline demonstrating **DuckDB**, **dbt**, and **Apache Iceberg** integration with **Polaris REST catalog** support.
 
 > 🎯 **Production-ready** data engineering project showcasing modern lakehouse architecture, workflow orchestration, and CI/CD best practices.
 
 ## Features
 
-- ✅ **Custom Iceberg REST Catalog** - Educational implementation of Apache Iceberg REST spec
+- ✅ **Apache Iceberg Polaris** - Production-grade REST catalog (AWS, Nessie, self-hosted)
+- ✅ **Custom REST Catalog** - Educational implementation of Apache Iceberg REST spec
 - ✅ **DuckDB Integration** - Native Iceberg support with DuckDB v1.4.2+
 - ✅ **dbt Transformations** - Data modeling and transformations
 - ✅ **Prefect Orchestration** - Production-ready workflow orchestration with scheduling
@@ -109,6 +110,16 @@ poetry run python src/flows/dbt_transformations.py
 ```
 
 </details>
+
+### For Production: Using Apache Iceberg Polaris
+
+The above quick start uses a local catalog. For production deployments, use **Apache Iceberg Polaris** (managed or self-hosted REST catalog):
+
+**See [POLARIS_SETUP.md](POLARIS_SETUP.md) for detailed instructions:**
+- ✅ AWS managed Polaris service
+- ✅ Self-hosted Polaris deployment
+- ✅ Nessie (alternative REST catalog)
+- ✅ Multi-cloud storage configuration (S3, Azure, GCS)
 
 ## Project Structure
 

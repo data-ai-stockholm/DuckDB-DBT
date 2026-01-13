@@ -18,10 +18,6 @@ weather:
       extensions:
         - httpfs
         - iceberg
-      attach:
-        - type: iceberg
-          name: iceberg_catalog
-          path: warehouse/
 
     # S3-based deployment with Iceberg
     prod_s3:

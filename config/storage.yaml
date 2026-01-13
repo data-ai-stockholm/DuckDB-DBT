@@ -37,17 +37,19 @@ table_format: iceberg
 # Iceberg catalog configuration
 iceberg:
   catalog:
-    type: rest  # REST catalog for true Iceberg support
-    uri: http://localhost:8181  # Python REST catalog server
-    warehouse: warehouse/
+    # Choose one of: 'local', 'sql', or 'rest'
+    # REST: Use with Polaris, Nessie, or other REST catalog services (production recommended)
+    type: rest
+    uri: http://localhost:8181  # Set via ICEBERG_REST_URI environment variable
+    warehouse: warehouse/         # Set via ICEBERG_WAREHOUSE environment variable
 
-    # For SQL catalog (not supported by DuckDB ATTACH)
-    # type: sql
-    # sql_uri: sqlite:///warehouse/catalog.db
-
-    # For local filesystem (requires proper Iceberg metadata)
+    # Alternative: Local filesystem catalog (direct access, no catalog service)
     # type: local
     # warehouse: warehouse/
+
+    # Alternative: SQL catalog (SQLite, PostgreSQL, etc.)
+    # type: sql
+    # sql_uri: sqlite:///warehouse/catalog.db
 
   # Namespace/database
   namespace: weather_data

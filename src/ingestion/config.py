@@ -45,11 +45,19 @@ class Config:
         if s3_endpoint := os.getenv("S3_ENDPOINT_URL"):
             self._config["storage"]["s3"]["endpoint_url"] = s3_endpoint
 
-        # Iceberg configuration
+        # Iceberg catalog configuration
         if iceberg_uri := os.getenv("ICEBERG_REST_URI"):
             self._config["iceberg"]["catalog"]["uri"] = iceberg_uri
         if warehouse := os.getenv("ICEBERG_WAREHOUSE"):
             self._config["iceberg"]["catalog"]["warehouse"] = warehouse
+
+        # Iceberg Polaris authentication
+        if catalog_type := os.getenv("ICEBERG_CATALOG_TYPE"):
+            self._config["iceberg"]["catalog"]["type"] = catalog_type
+        if client_id := os.getenv("ICEBERG_CLIENT_ID"):
+            self._config["iceberg"]["catalog"]["client_id"] = client_id
+        if client_secret := os.getenv("ICEBERG_CLIENT_SECRET"):
+            self._config["iceberg"]["catalog"]["client_secret"] = client_secret
 
         # Table format
         if table_format := os.getenv("TABLE_FORMAT"):

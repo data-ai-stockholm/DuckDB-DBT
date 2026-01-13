@@ -78,7 +78,7 @@ class IcebergManager:
                 print("Using local filesystem Iceberg catalog")
 
             elif catalog_type == "rest":
-                # REST Catalog (Polaris, Lakekeeper, etc.)
+                # REST Catalog (Polaris, Nessie, Lakekeeper, etc.)
                 rest_uri = catalog_config.get("uri")
                 if not rest_uri:
                     raise ValueError("REST catalog requires 'uri' in configuration")
@@ -87,14 +87,32 @@ class IcebergManager:
                 self.conn.execute("INSTALL httpfs")
                 self.conn.execute("LOAD httpfs")
 
-                attach_sql = f"""
-                    ATTACH '{warehouse_path}' AS {self.catalog_name} (
-                        TYPE iceberg,
-                        ENDPOINT '{rest_uri}',
-                        AUTHORIZATION_TYPE 'none'
-                    )
-                """
-                print(f"Using REST catalog at {rest_uri}")
+                # Check for Polaris authentication
+                client_id = catalog_config.get("client_id")
+                client_secret = catalog_config.get("client_secret")
+
+                if client_id and client_secret:
+                    # OAuth 2.0 authentication for Polaris
+                    attach_sql = f"""
+                        ATTACH '{warehouse_path}' AS {self.catalog_name} (
+                            TYPE iceberg,
+                            ENDPOINT '{rest_uri}',
+                            AUTHORIZATION_TYPE 'oauth2',
+                            CLIENT_ID '{client_id}',
+                            CLIENT_SECRET '{client_secret}'
+                        )
+                    """
+                    print(f"Using Polaris REST catalog at {rest_uri} with OAuth2 auth")
+                else:
+                    # No authentication
+                    attach_sql = f"""
+                        ATTACH '{warehouse_path}' AS {self.catalog_name} (
+                            TYPE iceberg,
+                            ENDPOINT '{rest_uri}',
+                            AUTHORIZATION_TYPE 'none'
+                        )
+                    """
+                    print(f"Using REST catalog at {rest_uri} (no authentication)")
 
             elif storage_backend == "s3":
                 # S3-based warehouse with optional REST catalog
