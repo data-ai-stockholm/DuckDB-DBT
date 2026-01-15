@@ -1,0 +1,44 @@
+# Local Filesystem Configuration - No External Services Required
+# Use this config for testing without AWS, Azure, GCS, or Polaris
+
+# Storage backend: Use local filesystem
+storage:
+  backend: local
+
+  # Local storage configuration
+  local:
+    data_dir: ingestion_data
+    database_path: weather_reports.db
+
+# Table format: Use Iceberg
+table_format: iceberg
+
+# Iceberg catalog configuration - LOCAL FILESYSTEM (No external catalog service)
+iceberg:
+  catalog:
+    # Local filesystem catalog: Direct access to warehouse, no REST service needed
+    type: local
+    warehouse: warehouse/
+
+  # Namespace/database
+  namespace: weather_data
+
+  # Table properties
+  table_properties:
+    write.format.default: parquet
+    write.parquet.compression-codec: snappy
+    write.metadata.compression-codec: gzip
+
+# API configuration
+api:
+  base_url: https://api.weather.gov
+  rate_limit_delay: 0.1  # seconds between requests
+  timeout: 30
+  retry_attempts: 3
+
+# Processing configuration
+processing:
+  batch_size: 1000
+  max_workers: 4
+  checkpoint_enabled: true
+  checkpoint_interval: 100
