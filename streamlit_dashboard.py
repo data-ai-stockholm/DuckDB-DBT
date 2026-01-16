@@ -87,7 +87,7 @@ def main():
                     ROUND(AVG(humidity_pct), 2) as avg_humidity,
                     ROUND(AVG(wind_speed_mps), 2) as avg_wind_mps,
                     ROUND(AVG(pressure_mb), 2) as avg_pressure
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
                 GROUP BY station_id, location
                 ORDER BY observations DESC
             """)
@@ -103,7 +103,7 @@ def main():
                     ROUND(AVG(humidity_pct), 2) as avg_humidity,
                     ROUND(AVG(wind_speed_mps), 2) as avg_wind_mps,
                     ROUND(AVG(pressure_mb), 2) as avg_pressure
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
                 WHERE station_id = '{selected_station}'
                 GROUP BY station_id, location
             """)
@@ -153,7 +153,7 @@ def main():
                         humidity_pct,
                         wind_speed_mps,
                         pressure_mb
-                    FROM marts.fact_observations
+                    FROM main_marts.fact_observations
                     ORDER BY observation_timestamp
                 """)
             else:
@@ -165,7 +165,7 @@ def main():
                         humidity_pct,
                         wind_speed_mps,
                         pressure_mb
-                    FROM marts.fact_observations
+                    FROM main_marts.fact_observations
                     WHERE station_id = '{selected_station}'
                     ORDER BY observation_timestamp
                 """)
@@ -217,7 +217,7 @@ def main():
                     station_id,
                     COUNT(*) as count,
                     ROUND(AVG(temperature_degC), 2) as avg_temp
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
                 GROUP BY condition, station_id
                 ORDER BY count DESC
             """)
@@ -269,7 +269,7 @@ def main():
                         avg_wind_speed_mps,
                         max_wind_speed_mps,
                         avg_pressure_mb
-                    FROM marts.fact_daily_weather
+                    FROM main_marts.fact_daily_weather
                     ORDER BY observation_date DESC
                 """)
             else:
@@ -286,7 +286,7 @@ def main():
                         avg_wind_speed_mps,
                         max_wind_speed_mps,
                         avg_pressure_mb
-                    FROM marts.fact_daily_weather
+                    FROM main_marts.fact_daily_weather
                     WHERE station_id = '{selected_station}'
                     ORDER BY observation_date DESC
                 """)
@@ -317,7 +317,7 @@ def main():
                     temperature_degC,
                     ROUND(temp_z_score, 2) as z_score,
                     temperature_category
-                FROM marts.extreme_weather_events
+                FROM main_marts.extreme_weather_events
                 ORDER BY observation_timestamp DESC
             """)
 

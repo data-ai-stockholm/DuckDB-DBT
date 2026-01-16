@@ -72,27 +72,27 @@ def get_record_counts():
 
     try:
         counts["Source"]["observations"] = conn.execute(
-            "SELECT COUNT(*) FROM observations"
+            "SELECT COUNT(*) FROM main.observations"
         ).fetchone()[0]
 
         counts["Staging"]["stg_observations"] = conn.execute(
-            "SELECT COUNT(*) FROM staging.stg_observations"
+            "SELECT COUNT(*) FROM main_staging.stg_observations"
         ).fetchone()[0]
 
         counts["Marts"]["fact_observations"] = conn.execute(
-            "SELECT COUNT(*) FROM marts.fact_observations"
+            "SELECT COUNT(*) FROM main_marts.fact_observations"
         ).fetchone()[0]
 
         counts["Marts"]["fact_daily_weather"] = conn.execute(
-            "SELECT COUNT(*) FROM marts.fact_daily_weather"
+            "SELECT COUNT(*) FROM main_marts.fact_daily_weather"
         ).fetchone()[0]
 
         counts["Marts"]["dim_stations"] = conn.execute(
-            "SELECT COUNT(*) FROM marts.dim_stations"
+            "SELECT COUNT(*) FROM main_marts.dim_stations"
         ).fetchone()[0]
 
         counts["Marts"]["extreme_weather_events"] = conn.execute(
-            "SELECT COUNT(*) FROM marts.extreme_weather_events"
+            "SELECT COUNT(*) FROM main_marts.extreme_weather_events"
         ).fetchone()[0]
 
     except Exception as e:
@@ -250,7 +250,7 @@ def main():
                     COUNT(station_id) as non_null_station,
                     COUNT(observation_timestamp) as non_null_timestamp,
                     COUNT(temperature_degC) as non_null_temp
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
             """).fetchone()
 
             col1, col2, col3, col4 = st.columns(4)
@@ -276,7 +276,7 @@ def main():
                     ROUND(MAX(temperature_degC), 2) as max_temp,
                     ROUND(AVG(temperature_degC), 2) as avg_temp,
                     ROUND(STDDEV(temperature_degC), 2) as stddev_temp
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
             """).fetchone()
 
             col1, col2, col3, col4 = st.columns(4)
@@ -301,7 +301,7 @@ def main():
                     COUNT(DISTINCT station_id) as unique_stations,
                     COUNT(DISTINCT DATE(observation_timestamp)) as unique_dates,
                     COUNT(DISTINCT condition) as unique_conditions
-                FROM marts.fact_observations
+                FROM main_marts.fact_observations
             """).fetchone()
 
             col1, col2, col3 = st.columns(3)
