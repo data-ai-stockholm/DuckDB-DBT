@@ -4,7 +4,7 @@ weather:
     # Local development with native DuckDB tables
     dev:
       type: duckdb
-      path: "weather_reports.db"
+      path: "../weather.duckdb"
       threads: 4
       extensions:
         - httpfs
@@ -13,7 +13,7 @@ weather:
     # Local development with Iceberg tables
     dev_iceberg:
       type: duckdb
-      path: "weather_reports.db"
+      path: "../weather.duckdb"
       threads: 4
       extensions:
         - httpfs
